@@ -39,3 +39,48 @@ Project architecture and module planning.
 6. Quiz and Revision
 7. Progress Tracking
 8. Testing
+
+
+## Project Requirements
+
+The project includes functional requirements,
+non-functional requirements and user requirements.
+
+Detailed requirements are available in:
+`docs/requirements.md`
+
+## Project Modules
+
+- Dashboard
+- Notes Management
+- Task Management
+- AI Study Assistant
+- Quiz and Revision
+- Progress Tracking
+
+## Feature Priorities
+
+### Must Have
+- Dashboard
+- Notes Management
+- Task Management
+- Basic AI Study Assistant
+- Basic Data Storage
+
+### Should Have
+- Quiz and Revision
+- Task Reminders
+- Progress Tracking
+
+### Could Have
+- Flashcards
+- Study Recommendations
+- Study Timetable
+- Advanced Analytics
+
+## Documentation
+
+- [Project Blueprint](docs/project-blueprint.md)
+- [Project Modules](docs/modules.md)
+- [System Architecture](docs/architecture.md)
+- [Project Requirements](docs/requirements.md)
