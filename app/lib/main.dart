@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'screens/notes_screen.dart';
 
@@ -16,9 +15,7 @@ class AIStudyCompanion extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'AI Study Companion',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
       home: const NotesScreen(),

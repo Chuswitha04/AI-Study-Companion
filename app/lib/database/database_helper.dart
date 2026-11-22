@@ -1,12 +1,10 @@
-
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 import '../models/note.dart';
 
 class DatabaseHelper {
-  static final DatabaseHelper instance =
-      DatabaseHelper._init();
+  static final DatabaseHelper instance = DatabaseHelper._init();
 
   static Database? _database;
 
@@ -25,17 +23,10 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
-  Future<void> _createDB(
-    Database db,
-    int version,
-  ) async {
+  Future<void> _createDB(Database db, int version) async {
     await db.execute('''
       CREATE TABLE notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,20 +42,14 @@ class DatabaseHelper {
   Future<int> insertNote(Note note) async {
     final db = await database;
 
-    return await db.insert(
-      'notes',
-      note.toMap()..remove('id'),
-    );
+    return await db.insert('notes', note.toMap()..remove('id'));
   }
 
   // Retrieve all notes.
   Future<List<Note>> getNotes() async {
     final db = await database;
 
-    final result = await db.query(
-      'notes',
-      orderBy: 'id DESC',
-    );
+    final result = await db.query('notes', orderBy: 'id DESC');
 
     return result.map((map) => Note.fromMap(map)).toList();
   }
@@ -73,11 +58,7 @@ class DatabaseHelper {
   Future<int> deleteNote(int id) async {
     final db = await database;
 
-    return await db.delete(
-      'notes',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('notes', where: 'id = ?', whereArgs: [id]);
   }
 
   // Close the database when required.
