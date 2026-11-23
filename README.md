@@ -77,8 +77,36 @@ Detailed requirements are available in:
 - Study Recommendations
 - Study Timetable
 - Advanced Analytics
+## Phase 1 - Weekly Progress Review
 
+### Project Name
+AI-Study-Companion
 
+### Technology Stack
+- Flutter
+- Dart
+- SQLite
+- Visual Studio Code
+- Git and GitHub
+
+### Implemented Module
+Notes Management
+
+### Current Features
+- Add study notes
+- Store notes locally
+- Display saved notes
+
+### Pending Features
+- Photo-to-text scanning
+- AI summarization
+- Flashcard generation
+- Quiz generation
+- Study streak tracker
+
+### Next Development Stage
+Improve the Notes Management module
+and implement the Flashcard module.
 ## Documentation
 
 - [Project Blueprint](docs/project-blueprint.md)
