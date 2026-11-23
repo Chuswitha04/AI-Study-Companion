@@ -78,6 +78,7 @@ Detailed requirements are available in:
 - Study Timetable
 - Advanced Analytics
 
+
 ## Documentation
 
 - [Project Blueprint](docs/project-blueprint.md)
