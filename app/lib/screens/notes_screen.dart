@@ -398,7 +398,7 @@ class _AddNoteDialogState extends State<_AddNoteDialog> {
       content: contentController.text.trim(),
       createdAt: DateTime.now().toIso8601String(),
     );
-
+    
     // Return the note to the parent screen.
     // Do not access or dispose controllers after popping.
     Navigator.of(context).pop(note);
