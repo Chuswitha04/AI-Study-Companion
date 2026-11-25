@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 import '../models/note.dart';
@@ -14,7 +15,12 @@ class _NotesScreenState extends State<NotesScreen> {
   List<Note> notes = [];
 
   bool isLoading = true;
-  String searchQuery = '';
+  bool isSaving = false;
+
+  final TextEditingController searchController =
+      TextEditingController();
+
+  String selectedSubject = 'All Subjects';
 
   @override
   void initState() {
@@ -22,16 +28,27 @@ class _NotesScreenState extends State<NotesScreen> {
     loadNotes();
   }
 
-  // Load all saved notes from SQLite.
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  // LOAD NOTES FROM SQLITE
   Future<void> loadNotes() async {
     try {
-      final result = await DatabaseHelper.instance.getNotes();
+      final data = await DatabaseHelper.instance.getNotes();
 
       if (!mounted) return;
 
       setState(() {
-        notes = result;
+        notes = data;
         isLoading = false;
+
+        if (selectedSubject != 'All Subjects' &&
+            !notes.any((n) => n.subject == selectedSubject)) {
+          selectedSubject = 'All Subjects';
+        }
       });
     } catch (e) {
       if (!mounted) return;
@@ -40,42 +57,32 @@ class _NotesScreenState extends State<NotesScreen> {
         isLoading = false;
       });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Unable to load notes: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to load notes: $e'),
+        ),
+      );
     }
   }
 
-  // Search notes by title, subject or content.
-  List<Note> get filteredNotes {
-    if (searchQuery.trim().isEmpty) {
-      return notes;
-    }
-
-    final query = searchQuery.toLowerCase().trim();
-
-    return notes.where((note) {
-      return note.title.toLowerCase().contains(query) ||
-          note.subject.toLowerCase().contains(query) ||
-          note.content.toLowerCase().contains(query);
-    }).toList();
-  }
-
-  // Open the Add Note dialog.
-  // The dialog returns a Note object.
-  // Database insertion happens AFTER the dialog closes.
+  // OPEN ADD NOTE DIALOG AND SAVE AFTER IT CLOSES
   Future<void> showAddNoteDialog() async {
     final Note? newNote = await showDialog<Note>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
-        return const AddNoteDialog();
+        return const _AddNoteDialog();
       },
     );
 
     if (!mounted || newNote == null) return;
 
+    setState(() {
+      isSaving = true;
+    });
+
     try {
+      // Database operation happens AFTER the dialog closes.
       await DatabaseHelper.instance.insertNote(newNote);
 
       if (!mounted) return;
@@ -99,17 +106,23 @@ class _NotesScreenState extends State<NotesScreen> {
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+        });
+      }
     }
   }
 
-  // Delete note after confirmation.
+  // DELETE NOTE
   Future<void> removeNote(Note note) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Delete Note?'),
-          content: Text('Are you sure you want to delete "${note.title}"?'),
+          content: Text('Delete "${note.title}"?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -121,10 +134,6 @@ class _NotesScreenState extends State<NotesScreen> {
               onPressed: () {
                 Navigator.of(dialogContext).pop(true);
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
               child: const Text('Delete'),
             ),
           ],
@@ -146,15 +155,48 @@ class _NotesScreenState extends State<NotesScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Note deleted successfully!')),
+        const SnackBar(
+          content: Text('Note deleted successfully!'),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Delete failed: $e'),
+        ),
+      );
     }
+  }
+
+  // FILTER NOTES BY SEARCH AND SUBJECT
+  List<Note> get filteredNotes {
+    final query = searchController.text.trim().toLowerCase();
+
+    return notes.where((note) {
+      final matchesSearch =
+          note.title.toLowerCase().contains(query) ||
+          note.subject.toLowerCase().contains(query) ||
+          note.content.toLowerCase().contains(query);
+
+      final matchesSubject =
+          selectedSubject == 'All Subjects' ||
+          note.subject == selectedSubject;
+
+      return matchesSearch && matchesSubject;
+    }).toList();
+  }
+
+  List<String> get subjects {
+    final result = notes
+        .map((note) => note.subject)
+        .toSet()
+        .toList();
+
+    result.sort();
+
+    return ['All Subjects', ...result];
   }
 
   @override
@@ -169,89 +211,127 @@ class _NotesScreenState extends State<NotesScreen> {
       ),
 
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
           : Column(
               children: [
-                // Search field.
+                // SEARCH FIELD
                 Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.fromLTRB(
+                    12, 12, 12, 6,
+                  ),
                   child: TextField(
+                    controller: searchController,
+                    onChanged: (_) {
+                      setState(() {});
+                    },
                     decoration: InputDecoration(
                       hintText: 'Search notes...',
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.clear),
                         onPressed: () {
-                          setState(() {
-                            searchQuery = '';
-                          });
+                          searchController.clear();
+                          setState(() {});
                         },
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
+                  ),
+                ),
+
+                // SUBJECT FILTER
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: selectedSubject,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Filter by Subject',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.filter_list),
+                    ),
+                    items: subjects.map((subject) {
+                      return DropdownMenuItem<String>(
+                        value: subject,
+                        child: Text(subject),
+                      );
+                    }).toList(),
                     onChanged: (value) {
+                      if (value == null) return;
+
                       setState(() {
-                        searchQuery = value;
+                        selectedSubject = value;
                       });
                     },
                   ),
                 ),
 
-                // Notes list.
+                // NOTES LIST
                 Expanded(
                   child: displayedNotes.isEmpty
                       ? Center(
                           child: Text(
-                            searchQuery.isEmpty
+                            notes.isEmpty
                                 ? 'No notes yet.\nTap + to create your first note!'
                                 : 'No matching notes found.',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 16),
+                            style: const TextStyle(
+                              fontSize: 16,
+                            ),
                           ),
                         )
                       : RefreshIndicator(
                           onRefresh: loadNotes,
                           child: ListView.builder(
+                            physics:
+                                const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.all(12),
                             itemCount: displayedNotes.length,
                             itemBuilder: (context, index) {
                               final note = displayedNotes[index];
 
                               return Card(
-                                elevation: 3,
-                                margin: const EdgeInsets.only(bottom: 12),
+                                margin: const EdgeInsets.only(
+                                  bottom: 12,
+                                ),
                                 child: ListTile(
-                                  contentPadding: const EdgeInsets.all(12),
-
+                                  leading: const CircleAvatar(
+                                    backgroundColor: Colors.indigo,
+                                    child: Icon(
+                                      Icons.menu_book,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                   title: Text(
                                     note.title,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 17,
                                     ),
                                   ),
-
                                   subtitle: Padding(
-                                    padding: const EdgeInsets.only(top: 8),
+                                    padding: const EdgeInsets.only(
+                                      top: 8,
+                                    ),
                                     child: Text(
-                                      '${note.subject}\n\n${note.content}',
-                                      maxLines: 4,
+                                      '${note.subject}\n${note.content}',
+                                      maxLines: 3,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-
                                   isThreeLine: true,
-
                                   trailing: IconButton(
                                     icon: const Icon(
                                       Icons.delete,
                                       color: Colors.red,
                                     ),
-                                    onPressed: () {
-                                      removeNote(note);
-                                    },
+                                    onPressed: () => removeNote(note),
                                   ),
                                 ),
                               );
@@ -263,48 +343,51 @@ class _NotesScreenState extends State<NotesScreen> {
             ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: showAddNoteDialog,
+        onPressed: isSaving ? null : showAddNoteDialog,
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
+        child: isSaving
+            ? const SizedBox(
+                height: 22,
+                width: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : const Icon(Icons.add),
       ),
     );
   }
 }
 
-// Separate Add Note dialog.
-// Controllers are disposed only when the dialog is disposed.
-class AddNoteDialog extends StatefulWidget {
-  const AddNoteDialog({super.key});
+// SEPARATE ADD NOTE DIALOG
+// Controllers belong to this widget and are disposed
+// only when this widget is disposed.
+
+class _AddNoteDialog extends StatefulWidget {
+  const _AddNoteDialog();
 
   @override
-  State<AddNoteDialog> createState() => _AddNoteDialogState();
+  State<_AddNoteDialog> createState() => _AddNoteDialogState();
 }
 
-class _AddNoteDialogState extends State<AddNoteDialog> {
+class _AddNoteDialogState extends State<_AddNoteDialog> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController titleController = TextEditingController();
-
-  final TextEditingController subjectController = TextEditingController();
-
-  final TextEditingController contentController = TextEditingController();
-
-  bool isSubmitting = false;
+  final titleController = TextEditingController();
+  final subjectController = TextEditingController();
+  final contentController = TextEditingController();
 
   @override
   void dispose() {
     titleController.dispose();
     subjectController.dispose();
     contentController.dispose();
-
     super.dispose();
   }
 
-  // Validate and return the Note to the parent screen.
   void saveNote() {
-    if (isSubmitting) return;
-
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -316,12 +399,8 @@ class _AddNoteDialogState extends State<AddNoteDialog> {
       createdAt: DateTime.now().toIso8601String(),
     );
 
-    setState(() {
-      isSubmitting = true;
-    });
-
-    // Return the note to NotesScreen.
-    // Database insertion is handled there.
+    // Return the note to the parent screen.
+    // Do not access or dispose controllers after popping.
     Navigator.of(context).pop(note);
   }
 
@@ -330,62 +409,55 @@ class _AddNoteDialogState extends State<AddNoteDialog> {
     return AlertDialog(
       title: const Text('Add Study Note'),
 
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
                 controller: titleController,
-                textCapitalization: TextCapitalization.sentences,
                 decoration: const InputDecoration(
                   labelText: 'Note Title',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.title),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter note title';
+                    return 'Enter note title';
                   }
                   return null;
                 },
               ),
 
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
 
               TextFormField(
                 controller: subjectController,
-                textCapitalization: TextCapitalization.words,
                 decoration: const InputDecoration(
                   labelText: 'Subject',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.book),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter subject';
+                    return 'Enter subject';
                   }
                   return null;
                 },
               ),
 
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
 
               TextFormField(
                 controller: contentController,
-                maxLines: 5,
-                minLines: 3,
-                textCapitalization: TextCapitalization.sentences,
+                maxLines: 4,
                 decoration: const InputDecoration(
                   labelText: 'Note Content',
-                  border: OutlineInputBorder(),
                   alignLabelWithHint: true,
-                  prefixIcon: Icon(Icons.description),
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter note content';
+                    return 'Enter note content';
                   }
                   return null;
                 },
@@ -397,20 +469,14 @@ class _AddNoteDialogState extends State<AddNoteDialog> {
 
       actions: [
         TextButton(
-          onPressed: isSubmitting
-              ? null
-              : () {
-                  Navigator.of(context).pop();
-                },
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
           child: const Text('Cancel'),
         ),
 
         ElevatedButton(
-          onPressed: isSubmitting ? null : saveNote,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.indigo,
-            foregroundColor: Colors.white,
-          ),
+          onPressed: saveNote,
           child: const Text('Save Note'),
         ),
       ],
