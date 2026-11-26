@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/note.dart';
-import '../database/database_helper.dart';
+import '../services/api_service.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -35,35 +35,37 @@ class _NotesScreenState extends State<NotesScreen> {
   }
 
   // LOAD NOTES FROM SQLITE
-  Future<void> loadNotes() async {
-    try {
-      final data = await DatabaseHelper.instance.getNotes();
+  
+Future<void> loadNotes() async {
+  try {
+    final data = await ApiService.getNotes();
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      setState(() {
-        notes = data;
-        isLoading = false;
+    setState(() {
+      notes = data;
+      isLoading = false;
 
-        if (selectedSubject != 'All Subjects' &&
-            !notes.any((n) => n.subject == selectedSubject)) {
-          selectedSubject = 'All Subjects';
-        }
-      });
-    } catch (e) {
-      if (!mounted) return;
+      if (selectedSubject != 'All Subjects' &&
+          !notes.any((n) => n.subject == selectedSubject)) {
+        selectedSubject = 'All Subjects';
+      }
+    });
+  } catch (e) {
+    if (!mounted) return;
 
-      setState(() {
-        isLoading = false;
-      });
+    setState(() {
+      isLoading = false;
+    });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Unable to load notes: $e'),
-        ),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Unable to load notes: $e'),
+      ),
+    );
   }
+}
+
 
   // OPEN ADD NOTE DIALOG AND SAVE AFTER IT CLOSES
   Future<void> showAddNoteDialog() async {
@@ -83,7 +85,7 @@ class _NotesScreenState extends State<NotesScreen> {
 
     try {
       // Database operation happens AFTER the dialog closes.
-      await DatabaseHelper.instance.insertNote(newNote);
+      await ApiService.createNote(newNote);
 
       if (!mounted) return;
 
@@ -146,7 +148,7 @@ class _NotesScreenState extends State<NotesScreen> {
     }
 
     try {
-      await DatabaseHelper.instance.deleteNote(note.id!);
+      await ApiService.deleteNote(note.id!);
 
       if (!mounted) return;
 
