@@ -1,115 +1,75 @@
 # AI-Study-Companion
 
-## Project Overview
-AI-Study-Companion is a study support application
-planned to help students organize their learning
-activities and study more effectively.
+## Project Description
+AI-Study-Companion is a mobile application designed to help students organize study materials, manage notes, generate flashcards, create quizzes and improve their learning habits.
 
-## Objectives
-- Organize study activities.
-- Manage study tasks and deadlines.
-- Maintain study notes.
-- Provide learning support.
-- Monitor study progress.
-
-## Proposed Modules
-- Dashboard
-- Notes
-- Task Management
-- AI Study Assistant
-- Quiz and Revision
-- Progress Tracking
-- User Profile (if included)
-
-## Project Structure
-- docs – Project documentation
-- frontend or app – Application interface
-- backend – Server-side functionality, if required
-- tests – Testing files
-
-## Project Status
-Project architecture and module planning.
-
-## Development Roadmap
-1. Setup
-2. UI development
-3. Notes
-4. Tasks
-5. AI Assistant
-6. Quiz and Revision
-7. Progress Tracking
-8. Testing
-
-
-## Project Requirements
-
-The project includes functional requirements,
-non-functional requirements and user requirements.
-
-Detailed requirements are available in:
-`docs/requirements.md`
-
-## Project Modules
-
-- Dashboard
-- Notes Management
-- Task Management
-- AI Study Assistant
-- Quiz and Revision
-- Progress Tracking
-
-## Feature Priorities
-
-### Must Have
-- Dashboard
-- Notes Management
-- Task Management
-- Basic AI Study Assistant
-- Basic Data Storage
-
-### Should Have
-- Quiz and Revision
-- Task Reminders
-- Progress Tracking
-
-### Could Have
-- Flashcards
-- Study Recommendations
-- Study Timetable
-- Advanced Analytics
-## Phase 1 - Weekly Progress Review
-
-### Project Name
-AI-Study-Companion
-
-### Technology Stack
+## Technology Stack
 - Flutter
 - Dart
 - SQLite
-- Visual Studio Code
-- Git and GitHub
+- VS Code
+- Android Emulator
 
-### Implemented Module
-Notes Management
+## Database Integration
+The application uses SQLite for local data storage.
 
-### Current Features
-- Add study notes
-- Store notes locally
-- Display saved notes
+### Notes Table
+| Field | Data Type |
+|---|---|
+| id | INTEGER PRIMARY KEY |
+| title | TEXT |
+| subject | TEXT |
+| content | TEXT |
+| created_at | TEXT |
 
-### Pending Features
-- Photo-to-text scanning
-- AI summarization
+## Implemented Database Operations
+1. Create – Save new study notes.
+2. Read – Retrieve and display saved notes.
+3. Update – Modify existing notes.
+4. Delete – Remove unwanted notes.
+
+## Current Development Status
+The Notes Management module is integrated with local SQLite storage.
+
+## Future Enhancements
 - Flashcard generation
 - Quiz generation
-- Study streak tracker
+- AI-based note summarization
+- Photo-to-text scanning
+- Study streak tracking
 
-### Next Development Stage
-Improve the Notes Management module
-and implement the Flashcard module.
-## Documentation
 
-- [Project Blueprint](docs/project-blueprint.md)
-- [Project Modules](docs/modules.md)
-- [System Architecture](docs/architecture.md)
-- [Project Requirements](docs/requirements.md)
+## Day 10 - Backend Development and API Integration
+
+### Backend Technology
+- Python
+- FastAPI
+- SQLite
+
+### Project Functionality
+The AI-Study-Companion backend manages study notes
+through REST API endpoints.
+
+### Implemented API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /notes | Retrieve all notes |
+| POST | /notes | Create a new note |
+| PUT | /notes/{note_id} | Update a note |
+| DELETE | /notes/{note_id} | Delete a note |
+
+### Database
+SQLite is used to store study notes.
+
+### API Testing
+API endpoints are tested using FastAPI Swagger UI.
+
+### How to Run the Backend
+
+1. Navigate to the backend folder.
+2. Install requirements:
+   python -m pip install -r requirements.txt
+3. Start the server:
+   python -m uvicorn main:app --reload
+4. Open http://127.0.0.1:8000/docs

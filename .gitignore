@@ -8,4 +8,6 @@ venv/
 !.env.example
 .vscode/
 .pytest_cache/
-
+backend/venv/
+backend/__pycache__/
+backend/*.db
