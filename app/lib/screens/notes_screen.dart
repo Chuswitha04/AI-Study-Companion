@@ -34,41 +34,43 @@ class _NotesScreenState extends State<NotesScreen> {
     super.dispose();
   }
 
-  // LOAD NOTES FROM SQLITE
-  
-Future<void> loadNotes() async {
-  try {
-    final data = await ApiService.getNotes();
+  // GET: Fetch notes from the FastAPI backend.
+  Future<void> loadNotes() async {
+    try {
+      final data = await ApiService.getNotes();
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      notes = data;
-      isLoading = false;
+      setState(() {
+        notes = data;
+        isLoading = false;
 
-      if (selectedSubject != 'All Subjects' &&
-          !notes.any((n) => n.subject == selectedSubject)) {
-        selectedSubject = 'All Subjects';
-      }
-    });
-  } catch (e) {
-    if (!mounted) return;
+        if (selectedSubject != 'All Subjects' &&
+            !notes.any(
+              (note) => note.subject == selectedSubject,
+            )) {
+          selectedSubject = 'All Subjects';
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
 
-    setState(() {
-      isLoading = false;
-    });
+      setState(() {
+        isLoading = false;
+      });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Unable to load notes: $e'),
-      ),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to load notes: $e'),
+        ),
+      );
+    }
   }
-}
 
-
-  // OPEN ADD NOTE DIALOG AND SAVE AFTER IT CLOSES
+  // POST: Add a note through the backend API.
   Future<void> showAddNoteDialog() async {
+    if (isSaving) return;
+
     final Note? newNote = await showDialog<Note>(
       context: context,
       barrierDismissible: false,
@@ -84,7 +86,6 @@ Future<void> loadNotes() async {
     });
 
     try {
-      // Database operation happens AFTER the dialog closes.
       await ApiService.createNote(newNote);
 
       if (!mounted) return;
@@ -117,7 +118,7 @@ Future<void> loadNotes() async {
     }
   }
 
-  // DELETE NOTE
+  // DELETE: Remove a note through the backend API.
   Future<void> removeNote(Note note) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -167,12 +168,13 @@ Future<void> loadNotes() async {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Delete failed: $e'),
+          backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  // FILTER NOTES BY SEARCH AND SUBJECT
+  // Search notes and filter by subject.
   List<Note> get filteredNotes {
     final query = searchController.text.trim().toLowerCase();
 
@@ -190,6 +192,7 @@ Future<void> loadNotes() async {
     }).toList();
   }
 
+  // Generate subject dropdown items.
   List<String> get subjects {
     final result = notes
         .map((note) => note.subject)
@@ -297,7 +300,8 @@ Future<void> loadNotes() async {
                             padding: const EdgeInsets.all(12),
                             itemCount: displayedNotes.length,
                             itemBuilder: (context, index) {
-                              final note = displayedNotes[index];
+                              final note =
+                                  displayedNotes[index];
 
                               return Card(
                                 margin: const EdgeInsets.only(
@@ -318,13 +322,15 @@ Future<void> loadNotes() async {
                                     ),
                                   ),
                                   subtitle: Padding(
-                                    padding: const EdgeInsets.only(
+                                    padding:
+                                        const EdgeInsets.only(
                                       top: 8,
                                     ),
                                     child: Text(
                                       '${note.subject}\n${note.content}',
                                       maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
+                                      overflow:
+                                          TextOverflow.ellipsis,
                                     ),
                                   ),
                                   isThreeLine: true,
@@ -333,7 +339,8 @@ Future<void> loadNotes() async {
                                       Icons.delete,
                                       color: Colors.red,
                                     ),
-                                    onPressed: () => removeNote(note),
+                                    onPressed: () =>
+                                        removeNote(note),
                                   ),
                                 ),
                               );
@@ -363,15 +370,13 @@ Future<void> loadNotes() async {
   }
 }
 
-// SEPARATE ADD NOTE DIALOG
-// Controllers belong to this widget and are disposed
-// only when this widget is disposed.
-
+// Add Note Dialog
 class _AddNoteDialog extends StatefulWidget {
   const _AddNoteDialog();
 
   @override
-  State<_AddNoteDialog> createState() => _AddNoteDialogState();
+  State<_AddNoteDialog> createState() =>
+      _AddNoteDialogState();
 }
 
 class _AddNoteDialogState extends State<_AddNoteDialog> {
@@ -400,9 +405,7 @@ class _AddNoteDialogState extends State<_AddNoteDialog> {
       content: contentController.text.trim(),
       createdAt: DateTime.now().toIso8601String(),
     );
-    
-    // Return the note to the parent screen.
-    // Do not access or dispose controllers after popping.
+
     Navigator.of(context).pop(note);
   }
 
@@ -424,7 +427,8 @@ class _AddNoteDialogState extends State<_AddNoteDialog> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
+                  if (value == null ||
+                      value.trim().isEmpty) {
                     return 'Enter note title';
                   }
                   return null;
@@ -440,7 +444,8 @@ class _AddNoteDialogState extends State<_AddNoteDialog> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
+                  if (value == null ||
+                      value.trim().isEmpty) {
                     return 'Enter subject';
                   }
                   return null;
@@ -458,7 +463,8 @@ class _AddNoteDialogState extends State<_AddNoteDialog> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
+                  if (value == null ||
+                      value.trim().isEmpty) {
                     return 'Enter note content';
                   }
                   return null;

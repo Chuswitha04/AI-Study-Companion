@@ -73,3 +73,59 @@ API endpoints are tested using FastAPI Swagger UI.
 3. Start the server:
    python -m uvicorn main:app --reload
 4. Open http://127.0.0.1:8000/docs
+
+## Day 11 – Frontend and Backend Integration
+
+### Project
+AI-Study-Companion
+
+### Objective
+Integrate the Flutter frontend with the Python FastAPI
+backend to perform study-note operations.
+
+### Technologies Used
+- Flutter
+- Dart
+- Python
+- FastAPI
+- SQLite
+- HTTP package
+
+### Integration Process
+The Flutter application communicates with the FastAPI
+backend using HTTP requests.
+
+The backend processes requests and stores study notes
+in its SQLite database.
+
+The Flutter application fetches the stored notes and
+displays them on the Notes screen.
+
+### Integrated Features
+- Fetch notes through GET API.
+- Add notes through POST API.
+- Delete notes through DELETE API.
+- Search notes.
+- Filter notes by subject.
+- Loading indicator.
+- Error handling.
+- Refresh notes.
+
+### Backend Endpoints
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | /notes | Retrieve notes |
+| POST | /notes | Add a note |
+| PUT | /notes/{note_id} | Update a note |
+| DELETE | /notes/{note_id} | Delete a note |
+
+### Testing
+The API endpoints were tested using FastAPI Swagger UI.
+
+The frontend integration was tested using an Android emulator.
+
+### Day 11 Outcome
+The Flutter frontend and backend are connected through
+HTTP API communication, enabling note creation,
+retrieval and deletion through the backend.

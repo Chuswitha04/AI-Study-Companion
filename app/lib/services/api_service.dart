@@ -1,17 +1,15 @@
 
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
-
 import '../models/note.dart';
 
 class ApiService {
-  // Android emulator address for the computer running FastAPI.
+  // Android emulator connects to the host computer through 10.0.2.2.
   static const String baseUrl = 'http://10.0.2.2:8000';
 
   static const Duration timeout = Duration(seconds: 15);
 
-  // GET: Fetch all notes from the backend.
+  // GET: Retrieve all notes.
   static Future<List<Note>> getNotes() async {
     final response = await http
         .get(Uri.parse('$baseUrl/notes'))
@@ -20,15 +18,15 @@ class ApiService {
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
 
-      return data
-          .map((item) => Note.fromMap(
-                Map<String, dynamic>.from(item),
-              ))
-          .toList();
+      return data.map((item) {
+        return Note.fromMap(
+          Map<String, dynamic>.from(item),
+        );
+      }).toList();
     }
 
     throw Exception(
-      'Unable to fetch notes. Status: ${response.statusCode}',
+      'Failed to load notes. Status: ${response.statusCode}',
     );
   }
 
@@ -51,7 +49,7 @@ class ApiService {
 
     if (response.statusCode != 201) {
       throw Exception(
-        'Unable to save note: ${response.body}',
+        'Failed to save note: ${response.body}',
       );
     }
   }
@@ -59,7 +57,7 @@ class ApiService {
   // PUT: Update an existing note.
   static Future<void> updateNote(Note note) async {
     if (note.id == null) {
-      throw Exception('Note ID is required for updating.');
+      throw Exception('Note ID is required.');
     }
 
     final response = await http
@@ -79,12 +77,12 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        'Unable to update note: ${response.body}',
+        'Failed to update note: ${response.body}',
       );
     }
   }
 
-  // DELETE: Remove a note.
+  // DELETE: Delete a note.
   static Future<void> deleteNote(int id) async {
     final response = await http
         .delete(Uri.parse('$baseUrl/notes/$id'))
@@ -92,7 +90,7 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        'Unable to delete note: ${response.body}',
+        'Failed to delete note: ${response.body}',
       );
     }
   }
