@@ -129,3 +129,35 @@ The frontend integration was tested using an Android emulator.
 The Flutter frontend and backend are connected through
 HTTP API communication, enabling note creation,
 retrieval and deletion through the backend.
+
+## Day 12 – Testing and Debugging
+
+### Testing Performed
+- Manual Testing
+- Functional Testing
+- Unit Testing
+- Integration Testing
+- System Testing
+- Regression Testing
+
+### Modules Tested
+- Notes Management
+- Input Validation
+- Search and Subject Filtering
+- API Integration
+- Database Operations
+- Error Handling
+
+### Testing Tools
+- Flutter Test
+- Flutter Analyze
+- FastAPI Swagger UI
+- Android Emulator
+
+### Testing Results
+Refer to the Day 12 testing report for individual
+test cases and their actual execution results.
+
+### Bug Fixes
+Document the bugs identified, their causes and
+the fixes implemented during testing.
